@@ -513,29 +513,35 @@ printBtn.onclick = () => {
   }
 
 
-/* Automatisches Ausblenden Logo*/
 /* ===============================
-   SPLASH – FINAL & STABIL
+   SPLASH – ZEITGESTEUERT
 ================================ */
+// Splash Timing (ms)
+const SPLASH_SHOW_DELAY = 200;   // warten bis anzeigen
+const SPLASH_VISIBLE_TIME = 2000; // sichtbar bleiben
+const SPLASH_FADE_TIME = 600;    // Fade-Dauer (muss zu CSS passen)
 
 window.addEventListener("load", () => {
   const splash = document.getElementById("splash");
   if (!splash) return;
 
-  // Splash sichtbar machen, NACHDEM alles geladen ist
-  requestAnimationFrame(() => {
-    splash.classList.add("show");
-  });
-
-  // Mindestanzeige
+  // anzeigen
   setTimeout(() => {
-    splash.classList.add("fade-out");
+    splash.classList.add("show");
 
+    // sichtbar bleiben
     setTimeout(() => {
-      splash.remove();
-    }, 650);
+      splash.classList.add("fade-out");
 
-  }, 900);
+      // nach Fade entfernen
+      setTimeout(() => {
+        splash.remove();
+      }, SPLASH_FADE_TIME);
+
+    }, SPLASH_VISIBLE_TIME);
+
+  }, SPLASH_SHOW_DELAY);
 });
+
 
 

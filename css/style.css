@@ -331,6 +331,7 @@ tbody tr:last-child td {
   background: #000 url("../assets/icons/splash-desktop.png") center / contain no-repeat;
   z-index: 9999;
   opacity: 0;                 /* WICHTIG */
+  animation: splashPulse 1.6s ease-in-out infinite;
   transition: opacity 0.6s ease;
 }
 
@@ -341,6 +342,13 @@ tbody tr:last-child td {
 .splash.fade-out {
   opacity: 0;
   pointer-events: none;
+}
+
+
+@keyframes splashPulse {
+  0%   { transform: scale(1); opacity: 0.85; }
+  50%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.85; }
 }
 
 
