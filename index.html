@@ -23,6 +23,16 @@
 
 
   <link rel="stylesheet" href="css/style.css">
+
+  <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js");
+        });
+      }
+</script>
+
+
 </head>
 
 <body>
