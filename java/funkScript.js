@@ -518,7 +518,7 @@ printBtn.onclick = () => {
 ================================ */
 // Splash Timing (ms)
 const SPLASH_SHOW_DELAY = 200;   // warten bis anzeigen
-const SPLASH_VISIBLE_TIME = 2000; // sichtbar bleiben
+const SPLASH_VISIBLE_TIME = 2500; // sichtbar bleiben
 const SPLASH_FADE_TIME = 600;    // Fade-Dauer (muss zu CSS passen)
 
 window.addEventListener("load", () => {
