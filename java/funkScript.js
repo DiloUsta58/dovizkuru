@@ -1,3 +1,17 @@
+/* =====================================
+   SPRACHE – INITIAL (GANZ OBEN)
+===================================== */
+
+// NUR beim ersten Besuch Systemsprache speichern
+if (!localStorage.getItem("lang")) {
+  const sysLang = navigator.language.startsWith("tr") ? "tr" : "de";
+  localStorage.setItem("lang", sysLang);
+}
+
+// DANACH Sprache lesen
+const LANG = localStorage.getItem("lang");
+
+
 /* =========================================================
    i18n – Deutsch / Türkisch (ZENTRAL)
 ========================================================= */
@@ -30,10 +44,6 @@ const i18n = {
     pdfTitle: (a, b) => `${a} – ${b}`
   }
 };
-
-const LANG =
-  localStorage.getItem("lang") ||
-  ((navigator.language || "").startsWith("tr") ? "tr" : "de");
 
 const T = i18n[LANG];
 
