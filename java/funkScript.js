@@ -96,11 +96,12 @@ function updateTitle(from, to, fromDate, toDate) {
 
 /* Fehler */
 function showError(type) {
-  const map = {
-    invalid: T.invalidRange,
-    nodata: T.noDataFound,
-    error: T.loadError
-  };
+const map = {
+  invalid: T.invalidRange,
+  nodata: T.nodata,
+  error: T.loadError
+};
+
   document.getElementById("tableBody").innerHTML =
     `<tr><td colspan="3" class="empty">${map[type]}</td></tr>`;
 }
@@ -320,7 +321,7 @@ function renderChart(labels, values, currency) {
     data: {
       labels,
       datasets: [{
-        label: `Monatsverlauf (${currency})`,
+        label: T.chart(currency),
         data: values,
         tension: 0.25
       }]
@@ -350,7 +351,8 @@ async function loadData() {
 
   if (fromDate > toDate) {
     tableBody.innerHTML =
-      `<tr><td colspan="3" class="empty">Ungültiger Zeitraum!</td></tr>`;
+          `<tr><td colspan="3" class="empty">${T.invalidRange}</td></tr>`;
+
     setLoading(false);
     return;
   }
@@ -358,8 +360,8 @@ async function loadData() {
   const from = direction === "EUR_TRY" ? "EUR" : "TRY";
   const to   = direction === "EUR_TRY" ? "TRY" : "EUR";
 
-  yearTitle.textContent =
-    `Wechselkurse ${from} → ${to} (${formatDateDE(fromDate)} – ${formatDateDE(toDate)})`;
+  yearTitle.textContent = T.ratesTitle(from, to, formatDateDE(fromDate), formatDateDE(toDate));
+
 
   const labels = [];
   const values = [];
@@ -391,12 +393,13 @@ async function loadData() {
     }
 
     if (!values.length) {
-      tableBody.innerHTML =
-        `<tr><td colspan="3" class="empty">Keine Daten gefunden!</td></tr>`;
+        tableBody.innerHTML =
+          `<tr><td colspan="3" class="empty">${T.nodata}</td></tr>`;
+
     } else {
       tableBody.innerHTML += `
         <tr>
-          <td>Summe</td>
+          <td>${T.sum}</td>
           <td></td>
           <td>${formatNumber(total)} ${to}</td>
         </tr>
@@ -404,8 +407,8 @@ async function loadData() {
       renderChart(labels, values, to);
     }
   } catch {
-    tableBody.innerHTML =
-      `<tr><td colspan="3" class="empty">Fehler beim Laden!</td></tr>`;
+      tableBody.innerHTML =
+        `<tr><td colspan="3" class="empty">${T.loadError}</td></tr>`;
   }
 
   setLoading(false);
@@ -470,8 +473,9 @@ pdfBtn.onclick = () => {
     return `${m}-${y}`;
   }
 
-  const fileName =
-    `Wechselkurse_${formatMonthYear(fromDate)}_${formatMonthYear(toDate)}.pdf`;
+  /* PDF-Dateiname beim Speichern*/
+const fileName =
+  `${T.pdfTitle(formatMonthYear(fromDate), formatMonthYear(toDate))}.pdf`;
 
   const doc = new jspdf.jsPDF();
 
