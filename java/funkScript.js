@@ -27,6 +27,7 @@ const i18n = {
     invalidRange: "Ungültiger Zeitraum!",
     loadError: "Fehler beim Laden!",
     sum: "Summe",
+
     toggle: (f, t) => `${f} → ${t}`,
     ratesTitle: (f, t, a, b) => `Wechselkurse ${f} → ${t} (${a} – ${b})`,
     updated: d => `Aktualisiert: ${d}`,
@@ -40,6 +41,7 @@ const i18n = {
     invalidRange: "Geçersiz tarih aralığı!",
     loadError: "Yükleme hatası!",
     sum: "Toplam",
+
     toggle: (f, t) => `${f} → ${t}`,
     ratesTitle: (f, t, a, b) => `${f} → ${t} Döviz Kurları (${a} – ${b})`,
     updated: d => `Güncellendi: ${d}`,
