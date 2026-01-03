@@ -554,13 +554,22 @@ printBtn.onclick = () => {
   window.print();
 };
 
+/* ===============================
+   I18N – HTML AUTOMATISCH
+================================ */
+
+document.querySelectorAll("[data-i18n]").forEach(el => {
+  const key = el.dataset.i18n;
+  if (T[key]) el.textContent = T[key];
+});
+
 
 /* ===============================
    SPLASH – ZEITGESTEUERT
 ================================ */
 // Splash Timing (ms)
 const SPLASH_SHOW_DELAY = 200;   // warten bis anzeigen
-const SPLASH_VISIBLE_TIME = 2500; // sichtbar bleiben
+const SPLASH_VISIBLE_TIME = 1500; // sichtbar bleiben
 const SPLASH_FADE_TIME = 600;    // Fade-Dauer (muss zu CSS passen)
 
 window.addEventListener("load", () => {
@@ -602,5 +611,23 @@ if (el) {
   el.textContent = T.updated(formatted);
 }
 
+/* ===============================
+   MANUELLER SPRACH-TOGGLE
+================================ */
+
+const langBtn = document.getElementById("langToggle");
+
+if (langBtn) {
+  // Initialen Button-Text setzen
+  langBtn.textContent = LANG === "tr" ? "DE" : "TR";
+
+  langBtn.addEventListener("click", () => {
+    const newLang = LANG === "tr" ? "de" : "tr";
+    localStorage.setItem("lang", newLang);
+
+    // Seite neu laden mit neuer Sprache
+    location.reload();
+  });
+}
 
 
