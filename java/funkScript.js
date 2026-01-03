@@ -1,3 +1,28 @@
+/* ===============================
+   PDF – UNICODE FONT
+================================ */
+const { jsPDF } = window.jspdf;
+
+let pdfFontReady = false;
+let pdfFontData = null;
+
+// Font laden
+fetch("assets/fonts/DejaVuSans.ttf")
+  .then(res => res.arrayBuffer())
+  .then(buf => {
+    const binary = Array.from(new Uint8Array(buf))
+      .map(b => String.fromCharCode(b))
+      .join("");
+
+    pdfFontData = btoa(binary);
+    pdfFontReady = true;
+  })
+  .catch(err => console.error("Font-Ladefehler:", err));
+
+
+
+
+
 /* =====================================
    SPRACHE – INITIAL (GANZ OBEN)
 ===================================== */
@@ -529,52 +554,96 @@ presetYear.onclick = () => {
   triggerAutoReload(0);
 };
 
+
 pdfBtn.onclick = () => {
+  // 🔒 Sicherheitschecks
+  if (!pdfFontReady || !pdfFontData) {
+    alert("PDF-Font noch nicht geladen");
+    return;
+  }
+
   const fromDate = new Date(dateFromInput.value);
   const toDate   = new Date(dateToInput.value);
 
-  // Datum DD.MM.YYYY
-  function formatDateDE(date) {
-    const d = String(date.getDate()).padStart(2, "0");
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const y = date.getFullYear();
-    return `${d}.${m}.${y}`;
+  if (isNaN(fromDate) || isNaN(toDate)) {
+    alert(T.invalidRange);
+    return;
   }
 
+  // =========================
+  // Datum DD.MM.YYYY (lokal)
+  // =========================
+  function formatDate(date) {
+    return date.toLocaleDateString(LOCALE, {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    });
+  }
+
+  // =========================
   // Dateiname MM-YY_MM-YY
+  // =========================
   function formatMonthYear(date) {
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const y = String(date.getFullYear()).slice(-2);
     return `${m}-${y}`;
   }
 
-  /* PDF-Dateiname beim Speichern*/
-const fileName =
-  `${T.pdfTitle(formatMonthYear(fromDate), formatMonthYear(toDate))}.pdf`;
+  // =========================
+  // PDF-Dateiname
+  // =========================
+  const fileName =
+    `${formatMonthYear(fromDate)}_${formatMonthYear(toDate)}.pdf`;
 
-  const doc = new jspdf.jsPDF();
+  // =========================
+  // PDF erzeugen
+  // =========================
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4"
+  });
 
-  // ✅ PDF-Überschrift: NUR Datum von – bis
+  // ✅ FONT HIER registrieren (UMD-KORREKT)
+  doc.addFileToVFS("DejaVuSans.ttf", pdfFontData);
+  doc.addFont("DejaVuSans.ttf", "DejaVu", "normal");
+  doc.setFont("DejaVu", "normal");
+
+  // =========================
+  // Titel (NUR Datum von – bis)
+  // =========================
+  doc.setFontSize(14);
   doc.text(
-    `${formatDateDE(fromDate)} – ${formatDateDE(toDate)}`,
+    `${formatDate(fromDate)} – ${formatDate(toDate)}`,
     14,
-    15
+    18
   );
 
+  // =========================
+  // Tabelle
+  // =========================
   doc.autoTable({
-    startY: 25,
+    startY: 28,
     html: "table",
     styles: {
+      font: "DejaVu",
       fontSize: 9,
       cellPadding: 3
     },
     headStyles: {
       fillColor: [37, 99, 235]
-    }
+    },
+    theme: "grid"
   });
 
+  // =========================
+  // Speichern
+  // =========================
   doc.save(fileName);
 };
+
+
 
 /* Drucken */ 
 const printBtn = document.getElementById("printBtn");
