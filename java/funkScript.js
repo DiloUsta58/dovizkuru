@@ -151,20 +151,44 @@ const map = {
   document.getElementById("tableBody").innerHTML =
     `<tr><td colspan="3" class="empty">${map[type]}</td></tr>`;
 }
+/* ===============================
+   SPLASH – NUR BEIM ERSTEN LADEN
+================================ */
 
-/* =========================================================
-   Splash Fade-Out
-========================================================= */
+// Splash nur einmal pro Session anzeigen
+const SHOW_SPLASH = !sessionStorage.getItem("splashShown");
 
-window.addEventListener("load", () => {
+if (SHOW_SPLASH) {
+  window.addEventListener("load", () => {
+    const splash = document.getElementById("splash");
+    if (!splash) return;
+
+    // merken: Splash wurde gezeigt
+    sessionStorage.setItem("splashShown", "1");
+
+    // anzeigen
+    setTimeout(() => {
+      splash.classList.add("show");
+
+      // sichtbar bleiben
+      setTimeout(() => {
+        splash.classList.add("fade-out");
+
+        // nach Fade entfernen
+        setTimeout(() => {
+          splash.remove();
+        }, SPLASH_FADE_TIME);
+
+      }, SPLASH_VISIBLE_TIME);
+
+    }, SPLASH_SHOW_DELAY);
+  });
+} else {
+  // Splash sofort entfernen, falls vorhanden
   const splash = document.getElementById("splash");
-  if (!splash) return;
+  splash && splash.remove();
+}
 
-  setTimeout(() => {
-    splash.classList.add("fade-out");
-    setTimeout(() => splash.remove(), 600);
-  }, 800);
-});
 
 
 /* =========================================================
@@ -619,7 +643,7 @@ const langBtn = document.getElementById("langToggle");
 
 if (langBtn) {
   // Initialen Button-Text setzen
-  langBtn.textContent = LANG === "tr" ? "DE" : "TR";
+  langBtn.textContent = LANG === "tr" ? "Sprache -DE- wählen" : "Dil -TR- Seç";
 
   langBtn.addEventListener("click", () => {
     const newLang = LANG === "tr" ? "de" : "tr";
