@@ -515,25 +515,27 @@ printBtn.onclick = () => {
 
 /* Automatisches Ausblenden Logo*/
 /* ===============================
-   SPLASH – DEFINITIVER FIX
+   SPLASH – FINAL & STABIL
 ================================ */
 
 window.addEventListener("load", () => {
   const splash = document.getElementById("splash");
   if (!splash) return;
 
-  // Sicherheit: Splash IMMER sichtbar beim Start
-  splash.style.display = "block";
+  // Splash sichtbar machen, NACHDEM alles geladen ist
+  requestAnimationFrame(() => {
+    splash.classList.add("show");
+  });
 
-  // kurzer Delay für sauberen Paint
+  // Mindestanzeige
   setTimeout(() => {
     splash.classList.add("fade-out");
 
-    // nach Transition vollständig entfernen
     setTimeout(() => {
-      splash.parentNode && splash.remove();
+      splash.remove();
     }, 650);
 
-  }, 500);
+  }, 900);
 });
+
 
