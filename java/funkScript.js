@@ -2,14 +2,17 @@
    SPRACHE – INITIAL (GANZ OBEN)
 ===================================== */
 
-// NUR beim ersten Besuch Systemsprache speichern
-if (!localStorage.getItem("lang")) {
-  const sysLang = navigator.language.startsWith("tr") ? "tr" : "de";
-  localStorage.setItem("lang", sysLang);
+// Sprache initial korrekt bestimmen
+let LANG = localStorage.getItem("lang");
+
+if (!LANG) {
+  LANG = (navigator.language || "").startsWith("tr") ? "tr" : "de";
+  localStorage.setItem("lang", LANG);
 }
 
-// DANACH Sprache lesen
-const LANG = localStorage.getItem("lang");
+// Locale NACH LANG setzen
+const LOCALE = LANG === "tr" ? "tr-TR" : "de-DE";
+
 
 
 /* =========================================================
@@ -102,17 +105,6 @@ function showError(type) {
     `<tr><td colspan="3" class="empty">${map[type]}</td></tr>`;
 }
 
-/* Footer */
-(function lastUpdate() {
-  const el = document.getElementById("lastUpdate");
-  if (!el) return;
-
-  const d = new Date(document.lastModified)
-    .toLocaleString(LANG === "tr" ? "tr-TR" : "de-DE");
-
-  el.textContent = T.updated(d);
-})();
-
 /* =========================================================
    Splash Fade-Out
 ========================================================= */
@@ -134,10 +126,17 @@ window.addEventListener("load", () => {
 
 const API_BASE = "https://api.frankfurter.app";
 
-const MONTHS = [
-  "Januar","Februar","März","April","Mai","Juni",
-  "Juli","August","September","Oktober","November","Dezember"
-];
+const MONTHS = {
+  de: [
+    "Januar","Februar","März","April","Mai","Juni",
+    "Juli","August","September","Oktober","November","Dezember"
+  ],
+  tr: [
+    "Ocak","Şubat","Mart","Nisan","Mayıs","Haziran",
+    "Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"
+  ]
+};
+
 
 const STORAGE_FROM   = "date_from";
 const STORAGE_TO     = "date_to";
@@ -242,12 +241,14 @@ function setLoading(active) {
   loader.classList.toggle("hidden", !active);
 }
 
+/* FORMATIERUNG I18N-SAUBER*/
 function formatNumber(v) {
-  return new Intl.NumberFormat("de-DE", {
+  return new Intl.NumberFormat(LOCALE, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(v);
 }
+
 
 function formatDateDE(date) {
   const d = String(date.getDate()).padStart(2, "0");
@@ -371,7 +372,8 @@ async function loadData() {
       for (let m = 1; m <= 12; m++) {
         if (doesMonthOverlapRange(year, m, fromDate, toDate) && rates[m]) {
           const value = rates[m] * amount;
-          const label = `${MONTHS[m-1]} ${year}`;
+          const label = `${MONTHS[LANG][m - 1]} ${year}`;
+
 
           tableBody.innerHTML += `
             <tr>
@@ -502,26 +504,6 @@ printBtn.onclick = () => {
   window.print();
 };
 
-/* Update-Funktionen */
-    const el = document.getElementById("lastUpdate");
-  if (el) {
-    // Hole das letzte Änderungsdatum der Seite
-    const lastModified = document.lastModified;
-
-/* =========================
-   LAST UPDATE
-    ========================= */
-
-    // Optional: formatiere Datum/Zeit für Türkisch
-    const formatted = new Date(lastModified).toLocaleString("tr-TR", {
-      dateStyle: "short",
-      timeStyle: "short"
-    });
-
-    // Setze den Text in das div
-    el.textContent = "Güncelleme: " + formatted;
-  }
-
 
 /* ===============================
    SPLASH – ZEITGESTEUERT
@@ -553,5 +535,21 @@ window.addEventListener("load", () => {
   }, SPLASH_SHOW_DELAY);
 });
 
+/* Footer */
+/* =========================
+   LAST UPDATE
+========================= */
+
+const el = document.getElementById("lastUpdate");
+if (el) {
+  const lastModified = document.lastModified;
+
+  const formatted = new Date(lastModified).toLocaleString(
+    LOCALE,
+    { dateStyle: "short", timeStyle: "short" }
+  );
+
+  el.textContent = formatted;
+}
 
 
