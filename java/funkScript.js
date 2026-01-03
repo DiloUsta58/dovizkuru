@@ -151,12 +151,18 @@ const map = {
   document.getElementById("tableBody").innerHTML =
     `<tr><td colspan="3" class="empty">${map[type]}</td></tr>`;
 }
+
 /* ===============================
    SPLASH – NUR BEIM ERSTEN LADEN
 ================================ */
 
 // Splash nur einmal pro Session anzeigen
 const SHOW_SPLASH = !sessionStorage.getItem("splashShown");
+
+// Splash Timing (ms)
+const SPLASH_SHOW_DELAY = 200;
+const SPLASH_VISIBLE_TIME = 1500;
+const SPLASH_FADE_TIME = 600;
 
 if (SHOW_SPLASH) {
   window.addEventListener("load", () => {
@@ -188,7 +194,6 @@ if (SHOW_SPLASH) {
   const splash = document.getElementById("splash");
   splash && splash.remove();
 }
-
 
 
 /* =========================================================
@@ -587,44 +592,15 @@ document.querySelectorAll("[data-i18n]").forEach(el => {
   if (T[key]) el.textContent = T[key];
 });
 
-
-/* ===============================
-   SPLASH – ZEITGESTEUERT
-================================ */
-// Splash Timing (ms)
-const SPLASH_SHOW_DELAY = 200;   // warten bis anzeigen
-const SPLASH_VISIBLE_TIME = 1500; // sichtbar bleiben
-const SPLASH_FADE_TIME = 600;    // Fade-Dauer (muss zu CSS passen)
-
-window.addEventListener("load", () => {
-  const splash = document.getElementById("splash");
-  if (!splash) return;
-
-  // anzeigen
-  setTimeout(() => {
-    splash.classList.add("show");
-
-    // sichtbar bleiben
-    setTimeout(() => {
-      splash.classList.add("fade-out");
-
-      // nach Fade entfernen
-      setTimeout(() => {
-        splash.remove();
-      }, SPLASH_FADE_TIME);
-
-    }, SPLASH_VISIBLE_TIME);
-
-  }, SPLASH_SHOW_DELAY);
-});
-
 /* Footer */
 /* =========================
    LAST UPDATE
 ========================= */
 
-const el = document.getElementById("lastUpdate");
-if (el) {
+window.addEventListener("DOMContentLoaded", () => {
+  const el = document.getElementById("lastUpdate");
+  if (!el || !T || !LOCALE) return;
+
   const lastModified = document.lastModified;
 
   const formatted = new Date(lastModified).toLocaleString(
@@ -633,7 +609,8 @@ if (el) {
   );
 
   el.textContent = T.updated(formatted);
-}
+});
+
 
 /* ===============================
    MANUELLER SPRACH-TOGGLE
