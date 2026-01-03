@@ -1,12 +1,128 @@
 /* =========================================================
+   i18n – Deutsch / Türkisch
+========================================================= */
+
+const i18n = {
+  de: {
+    title: "Wechselkurs Monatsübersicht",
+    show: "Anzeigen",
+    today: "Heute",
+    month: "Monat",
+    year: "12 Monate",
+    darkmode: "Dark Mode",
+    pdf: "PDF",
+    print: "Drucken",
+    loading: "Laden …",
+    nodata: "Keine Daten geladen",
+    invalidRange: "Ungültiger Zeitraum!",
+    noDataFound: "Keine Daten gefunden!",
+    loadError: "Fehler beim Laden!",
+    sum: "Summe",
+    ratesTitle: (f, t, a, b) =>
+      `Wechselkurse ${f} → ${t} (${a} – ${b})`,
+    chartLabel: c => `Monatsverlauf (${c})`,
+    updated: d => `Aktualisiert: ${d}`
+  },
+  tr: {
+    title: "Aylık Döviz Kuru Özeti",
+    show: "Göster",
+    today: "Bugün",
+    month: "Ay",
+    year: "12 Ay",
+    darkmode: "Karanlık Mod",
+    pdf: "PDF",
+    print: "Yazdır",
+    loading: "Yükleniyor …",
+    nodata: "Veri yok",
+    invalidRange: "Geçersiz tarih aralığı!",
+    noDataFound: "Veri bulunamadı!",
+    loadError: "Yükleme hatası!",
+    sum: "Toplam",
+    ratesTitle: (f, t, a, b) =>
+      `${f} → ${t} Döviz Kurları (${a} – ${b})`,
+    chartLabel: c => `Aylık Değişim (${c})`,
+    updated: d => `Güncellendi: ${d}`
+  }
+};
+
+const LANG =
+  (navigator.language || "").startsWith("tr") ? "tr" : "de";
+
+const T = i18n[LANG];
+
+/* =========================================================
+   HTML Texte anwenden
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    if (T[key]) el.textContent = T[key];
+  });
+});
+
+/* =========================================================
+   Beispiel Nutzung in JS
+========================================================= */
+
+function setLoading(active) {
+  const loader = document.getElementById("loader");
+  loader.textContent = T.loading;
+  loader.classList.toggle("hidden", !active);
+}
+
+/* Titel */
+function updateTitle(from, to, fromDate, toDate) {
+  document.getElementById("yearTitle").textContent =
+    T.ratesTitle(from, to, fromDate, toDate);
+}
+
+/* Fehler */
+function showError(type) {
+  const map = {
+    invalid: T.invalidRange,
+    nodata: T.noDataFound,
+    error: T.loadError
+  };
+  document.getElementById("tableBody").innerHTML =
+    `<tr><td colspan="3" class="empty">${map[type]}</td></tr>`;
+}
+
+/* Footer */
+(function lastUpdate() {
+  const el = document.getElementById("lastUpdate");
+  if (!el) return;
+
+  const d = new Date(document.lastModified)
+    .toLocaleString(LANG === "tr" ? "tr-TR" : "de-DE");
+
+  el.textContent = T.updated(d);
+})();
+
+/* =========================================================
+   Splash Fade-Out
+========================================================= */
+
+window.addEventListener("load", () => {
+  const splash = document.getElementById("splash");
+  if (!splash) return;
+
+  setTimeout(() => {
+    splash.classList.add("fade-out");
+    setTimeout(() => splash.remove(), 600);
+  }, 800);
+});
+
+
+/* =========================================================
    Konfiguration & Konstanten
 ========================================================= */
 
 const API_BASE = "https://api.frankfurter.app";
 
 const MONTHS = [
-  "Januar / Ocak","Februar / Şubat","März / Mart","April / Nisan","Mai / Mayız","Juni / Haziran",
-  "Juli / Temmuz","August / Ağustos","September / Eylül","Oktober / Ekim","November / Kasım","Dezember / Aralık"
+  "Januar","Februar","März","April","Mai","Juni",
+  "Juli","August","September","Oktober","November","Dezember"
 ];
 
 const STORAGE_FROM   = "date_from";
@@ -218,7 +334,7 @@ async function loadData() {
 
   if (fromDate > toDate) {
     tableBody.innerHTML =
-      `<tr><td colspan="3" class="empty">Ungültiger Zeitraum! /  Hatalı Zaman arası!</td></tr>`;
+      `<tr><td colspan="3" class="empty">Ungültiger Zeitraum!</td></tr>`;
     setLoading(false);
     return;
   }
@@ -259,7 +375,7 @@ async function loadData() {
 
     if (!values.length) {
       tableBody.innerHTML =
-        `<tr><td colspan="3" class="empty">Keine Daten gefunden! / Bilgiler Alınamadı!</td></tr>`;
+        `<tr><td colspan="3" class="empty">Keine Daten gefunden!</td></tr>`;
     } else {
       tableBody.innerHTML += `
         <tr>
@@ -272,7 +388,7 @@ async function loadData() {
     }
   } catch {
     tableBody.innerHTML =
-      `<tr><td colspan="3" class="empty">Fehler beim Laden! - Yüklme hatası!</td></tr>`;
+      `<tr><td colspan="3" class="empty">Fehler beim Laden!</td></tr>`;
   }
 
   setLoading(false);
@@ -378,7 +494,7 @@ printBtn.onclick = () => {
     const lastModified = document.lastModified;
 
 /* =========================
-   6) LAST UPDATE
+   LAST UPDATE
     ========================= */
 
     // Optional: formatiere Datum/Zeit für Türkisch
@@ -390,7 +506,7 @@ printBtn.onclick = () => {
     // Setze den Text in das div
     el.textContent = "Güncelleme: " + formatted;
   }
-  
+
 
 /* Automatisches Ausblenden Logo*/
 window.addEventListener("load", () => {
