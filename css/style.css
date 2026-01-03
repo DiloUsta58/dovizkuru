@@ -315,11 +315,6 @@ tbody tr:last-child td {
   }
 }
 
-/* Automatisch Querformat vorschlagen */
-@page {
-  size: A4 landscape;
-  margin: 15mm;
-}
 
 /* Titel im Druck größer darstellen */
 @media print {

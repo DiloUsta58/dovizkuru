@@ -514,26 +514,17 @@ printBtn.onclick = () => {
 
 
 /* Automatisches Ausblenden Logo*/
-/* ===============================
-   SPLASH – DEFINITIVER FIX
-================================ */
-
 window.addEventListener("load", () => {
   const splash = document.getElementById("splash");
   if (!splash) return;
 
-  // Sicherheit: Splash IMMER sichtbar beim Start
-  splash.style.display = "block";
-
-  // kurzer Delay für sauberen Paint
+  // kleine Mindestanzeige (UX)
   setTimeout(() => {
     splash.classList.add("fade-out");
 
-    // nach Transition vollständig entfernen
+    // nach Fade komplett entfernen
     setTimeout(() => {
-      splash.parentNode && splash.remove();
-    }, 650);
-
-  }, 500);
+      splash.remove();
+    }, 600);
+  }, 800);
 });
-
