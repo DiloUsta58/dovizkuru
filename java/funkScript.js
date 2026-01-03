@@ -21,6 +21,7 @@ const LOCALE = LANG === "tr" ? "tr-TR" : "de-DE";
 
 const i18n = {
   de: {
+    /* ===== Allgemein ===== */
     title: "Wechselkurs Monatsübersicht",
     loading: "Laden …",
     nodata: "Keine Daten gefunden",
@@ -28,13 +29,35 @@ const i18n = {
     loadError: "Fehler beim Laden!",
     sum: "Summe",
 
+    /* ===== Buttons / Controls ===== */
+    show: "Anzeigen",
+    today: "Heute",
+    month: "Monat",
+    year: "12 Monate",
+    darkmode: "Dark Mode",
+    pdf: "PDF",
+    print: "Drucken",
+
+    /* ===== Tabelle ===== */
+    month_col: "Monat",
+
+    /* ===== Toggle / Titel ===== */
     toggle: (f, t) => `${f} → ${t}`,
-    ratesTitle: (f, t, a, b) => `Wechselkurse ${f} → ${t} (${a} – ${b})`,
+    ratesTitle: (f, t, a, b) =>
+      `Wechselkurse ${f} → ${t} (${a} – ${b})`,
+
+    /* ===== Footer / Status ===== */
     updated: d => `Aktualisiert: ${d}`,
+    footer_author: "© Dilaver Bölükbaşı",
+    footer_lastupdate: "Zuletzt aktualisiert",
+
+    /* ===== Chart / PDF ===== */
     chart: c => `Monatsverlauf (${c})`,
     pdfTitle: (a, b) => `${a} – ${b}`
   },
+
   tr: {
+    /* ===== Genel ===== */
     title: "Aylık Döviz Kuru Özeti",
     loading: "Yükleniyor …",
     nodata: "Veri bulunamadı",
@@ -42,13 +65,34 @@ const i18n = {
     loadError: "Yükleme hatası!",
     sum: "Toplam",
 
+    /* ===== Butonlar / Kontroller ===== */
+    show: "Göster",
+    today: "Bugün",
+    month: "Ay",
+    year: "12 Ay",
+    darkmode: "Karanlık Mod",
+    pdf: "PDF",
+    print: "Yazdır",
+
+    /* ===== Tablo ===== */
+    month_col: "Ay",
+
+    /* ===== Toggle / Başlık ===== */
     toggle: (f, t) => `${f} → ${t}`,
-    ratesTitle: (f, t, a, b) => `${f} → ${t} Döviz Kurları (${a} – ${b})`,
+    ratesTitle: (f, t, a, b) =>
+      `${f} → ${t} Döviz Kurları (${a} – ${b})`,
+
+    /* ===== Altbilgi / Durum ===== */
     updated: d => `Güncellendi: ${d}`,
+    footer_author: "© Dilaver Bölükbaşı",
+    footer_lastupdate: "Son güncelleme",
+
+    /* ===== Grafik / PDF ===== */
     chart: c => `Aylık Değişim (${c})`,
     pdfTitle: (a, b) => `${a} – ${b}`
   }
 };
+
 
 const T = i18n[LANG];
 
@@ -555,7 +599,8 @@ if (el) {
     { dateStyle: "short", timeStyle: "short" }
   );
 
-  el.textContent = formatted;
+  el.textContent = T.updated(formatted);
 }
+
 
 
