@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Wechselkurs Monatsübersicht</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  <!-- ===== Favicons ===== -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png">
+
+<!-- ===== Apple ===== -->
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+
+<!-- ===== PWA / App Icons ===== -->
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#0b3ea8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DiloUsta58">
+
+
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- jsPDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.29/dist/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+
+  <div class="controls">
+        <button id="toggleBtn">EUR ⇄ TRY</button><input id="amount" type="number" value="1" step="10">
+    <button id="showBtn">Anzeigen</button>
+    <button id="presetToday">Heute</button>
+    <button id="presetMonth">Monat</button>
+    <button id="presetYear">12 Monate</button>
+
+    <input id="dateFrom" type="date">
+    <input id="dateTo" type="date">
+    <button id="darkModeBtn">Dark Mode</button>
+    <button id="pdfBtn">PDF</button><button id="printBtn">Drucken</button>
+
+  </div>
+
+  <h2 id="yearTitle"></h2>
+
+  <div id="loader" class="hidden">Laden …</div>
+
+  <div class="data-layout">
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Monat</th>
+            <th id="colFrom">EUR</th>
+            <th id="colTo">TRY</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="3" class="empty">Keine Daten geladen</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="chart"></canvas>
+    </div>
+
+  </div>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="java/funkScript.js"></script>
+</body>
+</html>

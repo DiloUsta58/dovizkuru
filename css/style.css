@@ -1,0 +1,338 @@
+/* =========================================================
+   Basis
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* =========================================================
+   Farben & Dark Mode
+========================================================= */
+
+:root {
+  --bg-color: #ffffff;
+  --text-color: #111111;
+  --card-bg: #f7f7f8;
+  --border-color: #e2e2e2;
+  --accent-color: #2563eb;
+  --row-hover: rgba(37, 99, 235, 0.06);
+}
+
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --text-color: #eaeaea;
+  --card-bg: #1e1e1e;
+  --border-color: #333333;
+  --row-hover: rgba(255, 255, 255, 0.06);
+}
+
+/* =========================================================
+   Controls
+========================================================= */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+}
+
+input,
+button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent-color);
+}
+
+/* =========================================================
+   Loader
+========================================================= */
+
+#loader {
+  padding: 12px 16px;
+  opacity: 0.75;
+}
+
+.hidden {
+  display: none;
+}
+
+/* =========================================================
+   Layout: Tabelle + Diagramm
+========================================================= */
+
+.data-layout {
+  display: flex;
+  gap: 24px;
+  margin: 24px 16px;
+  align-items: flex-start;
+}
+
+.table-container {
+  flex: 2;
+  overflow-x: auto;
+  max-height: 70vh;
+  background: var(--card-bg);
+  border-radius: 10px;
+}
+
+.chart-container {
+  flex: 1;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: 10px;
+  position: sticky;
+  top: 16px;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* =========================================================
+   Tabelle – Elegant & ruhig
+========================================================= */
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: 0.95rem;
+}
+
+/* Kopf */
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(
+    to bottom,
+    var(--card-bg),
+    rgba(0, 0, 0, 0.03)
+  );
+  text-align: left;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+/* Zellen */
+tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Zebra-Streifen */
+tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="dark"] tbody tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* Hover */
+tbody tr:hover {
+  background-color: var(--row-hover);
+}
+
+/* =========================================================
+   Fixierte Monatsspalte
+========================================================= */
+
+th:first-child,
+td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--card-bg);
+  z-index: 1;
+}
+
+thead th:first-child {
+  z-index: 3;
+}
+
+/* =========================================================
+   Spalten & Zahlen
+========================================================= */
+
+th:nth-child(1),
+td:nth-child(1) {
+  width: 28%;
+  white-space: nowrap;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+[data-theme="dark"] th:nth-child(1),
+[data-theme="dark"] td:nth-child(1) {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+th:nth-child(2),
+th:nth-child(3),
+td:nth-child(2),
+td:nth-child(3) {
+  width: 36%;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Zielwert hervorheben */
+td:nth-child(3) {
+  font-weight: 500;
+  color: var(--accent-color);
+}
+
+[data-theme="dark"] td:nth-child(3) {
+  color: #93c5fd;
+}
+
+/* Sanfte Übergänge */
+tbody tr,
+td {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* =========================================================
+   Leerer Zustand
+========================================================= */
+
+.empty {
+  text-align: center;
+  opacity: 0.65;
+  padding: 28px 0;
+}
+
+/* =========================================================
+   Summenzeile
+========================================================= */
+
+tbody tr:last-child {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+
+[data-theme="dark"] tbody tr:last-child {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+tbody tr:last-child td {
+  font-weight: 700;
+  border-top: 2px solid var(--border-color);
+}
+
+/* =========================================================
+   Responsive
+========================================================= */
+
+@media (max-width: 900px) {
+  .data-layout {
+    flex-direction: column;
+  }
+
+  .chart-container {
+    position: relative;
+    top: 0;
+  }
+}
+
+/* =========================================================
+   Print / PDF Optimierung
+========================================================= */
+
+@media print {
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .controls,
+  .chart-container,
+  button {
+    display: none !important;
+  }
+
+  .table-container {
+    max-height: none !important;
+    overflow: visible !important;
+    border-radius: 0;
+    background: #ffffff;
+  }
+
+  table {
+    font-size: 9pt;
+    width: 100%;
+  }
+
+  thead th {
+    background: #f0f0f0 !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #999999;
+  }
+
+  tbody td {
+    border-bottom: 1px solid #dddddd;
+    color: #000000 !important;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: #fafafa !important;
+  }
+
+  tbody tr:last-child {
+    background: #f5f5f5 !important;
+    font-weight: 700;
+  }
+
+  /* Sticky-Spalten im PDF deaktivieren */
+  th:first-child,
+  td:first-child {
+    position: static !important;
+  }
+}
+
+/* Automatisch Querformat vorschlagen */
+@page {
+  size: A4 landscape;
+  margin: 15mm;
+}
+
+/* Titel im Druck größer darstellen */
+@media print {
+  #yearTitle {
+    font-size: 14pt;
+    font-weight: 700;
+    margin-bottom: 10mm;
+  }
+}
+.splash {
+  position: fixed;
+  inset: 0;
+  background: #0b3ea8 url("assets/icons/splash-desktop.png") center / cover no-repeat;
+  z-index: 9999;
+}
+
