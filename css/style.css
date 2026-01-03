@@ -329,10 +329,25 @@ tbody tr:last-child td {
     margin-bottom: 10mm;
   }
 }
+/* Splash Screen */
 .splash {
   position: fixed;
   inset: 0;
-  background: #0b3ea8 url("assets/icons/splash-desktop.png") center / cover no-repeat;
+  background: #000 url("assets/icons/splash-desktop.png") center / contain no-repeat;
   z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.6s ease;
 }
+
+/* ausgeblendet */
+.splash.fade-out {
+  opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .splash {
+    background-image: url("assets/icons/splash-mobile.png");
+  }
+}
+
 

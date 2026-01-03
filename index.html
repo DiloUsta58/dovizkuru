@@ -31,48 +31,54 @@
 </head>
 
 <body>
+<div id="splash" class="splash"></div>
 
   <div class="controls">
         <button id="toggleBtn">EUR ⇄ TRY</button><input id="amount" type="number" value="1" step="10">
-    <button id="showBtn">Anzeigen</button>
-    <button id="presetToday">Heute</button>
-    <button id="presetMonth">Monat</button>
-    <button id="presetYear">12 Monate</button>
+    <button id="showBtn">Göster</button>
+    <button id="presetToday">Bugün</button>
+    <button id="presetMonth">Son bir Ay</button>
+    <button id="presetYear">Son 12 Ay</button>
 
     <input id="dateFrom" type="date">
     <input id="dateTo" type="date">
     <button id="darkModeBtn">Dark Mode</button>
-    <button id="pdfBtn">PDF</button><button id="printBtn">Drucken</button>
+    <button id="pdfBtn">PDF</button><button id="printBtn">Yazdır</button>
 
   </div>
 
   <h2 id="yearTitle"></h2>
 
-  <div id="loader" class="hidden">Laden …</div>
+  <div id="loader" class="hidden">Yükleniyor …</div>
 
   <div class="data-layout">
     <div class="table-container">
       <table>
         <thead>
           <tr>
-            <th>Monat</th>
+            <th>Ay</th>
             <th id="colFrom">EUR</th>
             <th id="colTo">TRY</th>
           </tr>
         </thead>
         <tbody id="tableBody">
           <tr>
-            <td colspan="3" class="empty">Keine Daten geladen</td>
+            <td colspan="3" class="empty">Döviz kurları alinamadı!</td>
           </tr>
         </tbody>
       </table>
     </div>
-
     <div class="chart-container">
       <canvas id="chart"></canvas>
     </div>
+ </div>
+     <footer>
+        <div id="kimlik" data-i18n="footer_author">© Dilaver Bölükbaşı</div>
+        <div id="lastUpdate" data-i18n="footer_lastupdate">
+            <!-- wird von fs.js automatisch gesetzt -->
+        </div>
+    </footer>
 
-  </div>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="java/funkScript.js"></script>
 </body>

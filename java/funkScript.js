@@ -5,8 +5,8 @@
 const API_BASE = "https://api.frankfurter.app";
 
 const MONTHS = [
-  "Januar","Februar","März","April","Mai","Juni",
-  "Juli","August","September","Oktober","November","Dezember"
+  "Januar / Ocak","Februar / Şubat","März / Mart","April / Nisan","Mai / Mayız","Juni / Haziran",
+  "Juli / Temmuz","August / Ağustos","September / Eylül","Oktober / Ekim","November / Kasım","Dezember / Aralık"
 ];
 
 const STORAGE_FROM   = "date_from";
@@ -218,7 +218,7 @@ async function loadData() {
 
   if (fromDate > toDate) {
     tableBody.innerHTML =
-      `<tr><td colspan="3" class="empty">Ungültiger Zeitraum</td></tr>`;
+      `<tr><td colspan="3" class="empty">Ungültiger Zeitraum! /  Hatalı Zaman arası!</td></tr>`;
     setLoading(false);
     return;
   }
@@ -259,7 +259,7 @@ async function loadData() {
 
     if (!values.length) {
       tableBody.innerHTML =
-        `<tr><td colspan="3" class="empty">Keine Daten</td></tr>`;
+        `<tr><td colspan="3" class="empty">Keine Daten gefunden! / Bilgiler Alınamadı!</td></tr>`;
     } else {
       tableBody.innerHTML += `
         <tr>
@@ -272,7 +272,7 @@ async function loadData() {
     }
   } catch {
     tableBody.innerHTML =
-      `<tr><td colspan="3" class="empty">Fehler beim Laden</td></tr>`;
+      `<tr><td colspan="3" class="empty">Fehler beim Laden! - Yüklme hatası!</td></tr>`;
   }
 
   setLoading(false);
@@ -371,3 +371,39 @@ printBtn.onclick = () => {
   window.print();
 };
 
+/* Update-Funktionen */
+    const el = document.getElementById("lastUpdate");
+  if (el) {
+    // Hole das letzte Änderungsdatum der Seite
+    const lastModified = document.lastModified;
+
+/* =========================
+   6) LAST UPDATE
+    ========================= */
+
+    // Optional: formatiere Datum/Zeit für Türkisch
+    const formatted = new Date(lastModified).toLocaleString("tr-TR", {
+      dateStyle: "short",
+      timeStyle: "short"
+    });
+
+    // Setze den Text in das div
+    el.textContent = "Güncelleme: " + formatted;
+  }
+  
+
+/* Automatisches Ausblenden Logo*/
+window.addEventListener("load", () => {
+  const splash = document.getElementById("splash");
+  if (!splash) return;
+
+  // kleine Mindestanzeige (UX)
+  setTimeout(() => {
+    splash.classList.add("fade-out");
+
+    // nach Fade komplett entfernen
+    setTimeout(() => {
+      splash.remove();
+    }, 600);
+  }, 800);
+});
