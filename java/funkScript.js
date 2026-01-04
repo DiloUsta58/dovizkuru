@@ -1,4 +1,17 @@
 /* ===============================
+   THEME – VOR INITIALISIERUNG
+================================ */
+
+const savedTheme = localStorage.getItem("theme");
+if (savedTheme === "dark") {
+  document.documentElement.dataset.theme = "dark";
+}
+
+const STORAGE_FROM_CURRENCY = "from_currency";
+const STORAGE_TO_CURRENCY   = "to_currency";
+
+
+/* ===============================
    WÄHRUNGEN – ZENTRAL
 ================================ */
 
@@ -43,8 +56,15 @@ function initCurrencySelects() {
 ================================ */
 
 fromSelect.addEventListener("change", () => {
-  fromCurrency = fromSelect.value;
+    fromCurrency = fromSelect.value;
+    localStorage.setItem(STORAGE_FROM_CURRENCY, fromCurrency);
+    loadData();
 
+    toSelect.addEventListener("change", () => {
+    toCurrency = toSelect.value;
+    localStorage.setItem(STORAGE_TO_CURRENCY, toCurrency);
+    loadData();
+  });
   // gleiche Währung verhindern
   if (fromCurrency === toCurrency) {
     toCurrency = CURRENCIES.find(c => c !== fromCurrency);
@@ -159,7 +179,7 @@ const i18n = {
     /* ===== Genel ===== */
     title: "Aylık Döviz Kuru Özeti",
     loading: "Yükleniyor …",
-    nodata: "Veri bulunamadı",
+    nodata: "Veri bulunamadı (Geçersiz tarih aralığı)!",
     invalidRange: "Geçersiz tarih aralığı!",
     loadError: "Yükleme hatası!",
     sum: "Toplam",
@@ -199,7 +219,7 @@ const i18n = {
 };
 
 
-const T = i18n[LANG];
+let T = i18n[LANG];
 
 /* =========================================================
    Hilfsfunktionen (Formatierung)
@@ -384,12 +404,23 @@ let autoReloadTimer = null;
   amountInput.value =
     localStorage.getItem(STORAGE_AMOUNT) || "1";
 
+  /* ===============================
+    WÄHRUNG AUS STORAGE
+  ================================ */
+
+  fromCurrency =
+    localStorage.getItem(STORAGE_FROM_CURRENCY) || fromCurrency;
+
+  toCurrency =
+    localStorage.getItem(STORAGE_TO_CURRENCY) || toCurrency;
+
+
   if (localStorage.getItem(STORAGE_THEME) === "dark") {
     document.body.dataset.theme = "dark";
   }
 
-  updateToggleUI();
-  initCurrencySelects();
+  initCurrencySelects();   // Dropdowns füllen
+  updateToggleUI();        // Spalten aktualisieren
 })();
 
 /* =========================================================
@@ -415,10 +446,29 @@ dateFromInput.addEventListener("change", () => {
   triggerAutoReload();
 });
 
+/* ===============================
+   DATE TO – ABSICHERN
+================================ */
+
 dateToInput.addEventListener("change", () => {
-  localStorage.setItem(STORAGE_TO, dateToInput.value);
+  const selectedDate = new Date(dateToInput.value);
+
+  // Zukunft verhindern
+  const safeDate = clampToToday(selectedDate);
+
+  // Input-Feld korrigieren
+  dateToInput.valueAsDate = safeDate;
+
+  // Persistenz
+  localStorage.setItem(
+    STORAGE_TO,
+    safeDate.toISOString().slice(0, 10)
+  );
+
+  // Neu laden (debounced)
   triggerAutoReload();
 });
+
 
 /* =========================================================
    UI-Helfer
@@ -535,8 +585,15 @@ async function loadData() {
   setLoading(true);
 
   const amount   = parseFloat(amountInput.value) || 1;
-  const fromDate = new Date(dateFromInput.value);
-  const toDate   = new Date(dateToInput.value);
+    let fromDate = new Date(dateFromInput.value);
+    let toDate   = new Date(dateToInput.value);
+
+    // Zukunft verhindern
+    toDate = clampToToday(toDate);
+
+    // Input-Feld ebenfalls korrigieren
+    dateToInput.valueAsDate = toDate;
+
 
   if (fromDate > toDate) {
     showError("invalid");
@@ -762,10 +819,16 @@ document.querySelectorAll("[data-i18n]").forEach(el => {
   if (T[key]) el.textContent = T[key];
 });
 
-/* Footer */
-/* =========================
-   LAST UPDATE
-========================= */
+/* ===============================
+   DATUM AUF HEUTE BEGRENZEN
+================================ */
+
+function clampToToday(date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date > today ? today : date;
+}
+
 
 /* =========================
    LAST UPDATE (FIXED FORMAT)
@@ -816,23 +879,52 @@ if ("serviceWorker" in navigator) {
 }
 
 
-
 /* ===============================
-   MANUELLER SPRACH-TOGGLE
+   SPRACH-TOGGLE – OHNE RELOAD
 ================================ */
 
 const langBtn = document.getElementById("langToggle");
 
 if (langBtn) {
-  // Initialen Button-Text setzen
-  langBtn.textContent = LANG === "tr" ? "Sprache -DE- wählen" : "Dil -TR- Seç";
+
+  // Button-Text initial
+  langBtn.textContent = LANG === "tr"
+    ? "Sprache -DE- wählen"
+    : "Dil -TR- Seç";
 
   langBtn.addEventListener("click", () => {
-    const newLang = LANG === "tr" ? "de" : "tr";
-    localStorage.setItem("lang", newLang);
 
-    // Seite neu laden mit neuer Sprache
-    location.reload();
+    // Sprache umschalten
+    LANG = LANG === "tr" ? "de" : "tr";
+    localStorage.setItem("lang", LANG);
+
+    // i18n neu setzen
+    T = i18n[LANG];
+
+    // Button-Text aktualisieren
+    langBtn.textContent = LANG === "tr"
+      ? "Sprache -DE- wählen"
+      : "Dil -TR- Seç";
+
+    // Texte live aktualisieren
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.dataset.i18n;
+      if (T[key]) el.textContent = T[key];
+    });
+
+    // Titel neu setzen
+    yearTitle.textContent = T.ratesTitle(
+      fromCurrency,
+      toCurrency,
+      formatDateDE(new Date(dateFromInput.value)),
+      formatDateDE(new Date(dateToInput.value))
+    );
+
+    // Chart-Beschriftung aktualisieren
+    if (chartInstance) {
+      chartInstance.data.datasets[0].label = T.chart(toCurrency);
+      chartInstance.update();
+    }
   });
 }
 
