@@ -925,7 +925,7 @@ if (langBtn) {
       chartInstance.data.datasets[0].label = T.chart(toCurrency);
       chartInstance.update();
     }
+    showBtn.onclick();
   });
 }
-
 
