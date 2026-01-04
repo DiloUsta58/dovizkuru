@@ -1,18 +1,3 @@
-/* =========================================================
-   Basis
-========================================================= */
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-               Roboto, Arial, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-}
 
 /* =========================================================
    Farben & Dark Mode
@@ -34,6 +19,32 @@ body {
   --border-color: #333333;
   --row-hover: rgba(255, 255, 255, 0.06);
 }
+
+#apiSelect {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+
+
+/* =========================================================
+   Basis
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
 
 /* =========================================================
    Controls
@@ -426,6 +437,91 @@ tbody tr:last-child td {
     font-size: 14pt;
     font-weight: 700;
     margin-bottom: 10mm;
+  }
+}
+
+/* Standard: Summe NICHT anzeigen */
+.print-only {
+  display: none;
+}
+
+/* Beim Drucken / PDF sichtbar */
+@media print {
+  .print-only {
+    display: table-row;
+  }
+
+  .diff-cell {
+    color: black !important; /* Druckerfreundlich */
+    font-weight: bold;
+  }
+}
+
+
+/* ===============================
+   DIFFERENZ – ROT
+================================ */
+
+/* Bildschirm */
+.diff-cell {
+  color: #dc2626;        /* Rot */
+  font-weight: 600;
+}
+
+/* ===============================
+   SUMME
+================================ */
+
+/* Bildschirm: versteckt */
+.sum-row {
+  display: none;
+}
+
+/* ===============================
+   DRUCK & PDF
+================================ */
+@media print {
+
+  /* Summe sichtbar */
+  .sum-row {
+    display: table-row;
+  }
+
+  /* Differenz BLEIBT ROT */
+  .diff-cell {
+    color: #dc2626 !important;
+    font-weight: bold;
+    text-decoration: underline double;
+  }
+
+  /* ===============================
+   DIFFERENZ – Tabelle
+   rot + doppelt unterstrichen
+================================ */
+
+.diff-row td {
+  color: #dc2626;
+  font-weight: 600;
+
+}
+
+  /* ===============================
+   DIFFERENZ – doppelt unterstrichen
+================================ */
+
+/* Bildschirm, Druck, PDF */
+.diff-row td:first-child {
+  text-decoration-line: underline;
+  text-decoration-style: double;
+  text-decoration-thickness: 2px;
+}
+
+  .sum-cell {
+    font-weight: bold;
+  }
+
+  .sum-row {
+    border-top: 2px solid #000;
   }
 }
 

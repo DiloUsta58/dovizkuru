@@ -141,7 +141,7 @@ const i18n = {
     invalidRange: "Ungültiger Zeitraum!",
     loadError: "Fehler beim Laden!",
     sum: "Summe",
-
+    difference: "Differenz",
     /* ===== Buttons / Controls ===== */
     show: "Anzeigen",
     today: "Heute",
@@ -183,6 +183,7 @@ const i18n = {
     invalidRange: "Geçersiz tarih aralığı!",
     loadError: "Yükleme hatası!",
     sum: "Toplam",
+    difference: "Zam Farkı",
 
     /* ===== Butonlar / Kontroller ===== */
     show: "Göster",
@@ -581,27 +582,34 @@ function renderChart(labels, values, currency) {
 ================================ */
 
 async function loadData() {
+
+  /* ===============================
+     RESET & LOADING
+  ================================ */
   tableBody.innerHTML = "";
   setLoading(true);
 
-  const amount   = parseFloat(amountInput.value) || 1;
-    let fromDate = new Date(dateFromInput.value);
-    let toDate   = new Date(dateToInput.value);
+  /* ===============================
+     INPUT WERTE
+  ================================ */
+  const amount = parseFloat(amountInput.value) || 1;
+  let fromDate = new Date(dateFromInput.value);
+  let toDate   = new Date(dateToInput.value);
 
-    // Zukunft verhindern
-    toDate = clampToToday(toDate);
+  // Zukunft verhindern (bis max. heute)
+  toDate = clampToToday(toDate);
+  dateToInput.valueAsDate = toDate;
 
-    // Input-Feld ebenfalls korrigieren
-    dateToInput.valueAsDate = toDate;
-
-
+  // Ungültiger Zeitraum
   if (fromDate > toDate) {
     showError("invalid");
     setLoading(false);
     return;
   }
 
-  // Titel
+  /* ===============================
+     TITEL
+  ================================ */
   yearTitle.textContent = T.ratesTitle(
     fromCurrency,
     toCurrency,
@@ -609,19 +617,34 @@ async function loadData() {
     formatDateDE(toDate)
   );
 
+  /* ===============================
+     CHART / TABLE DATA
+  ================================ */
   const labels = [];
   const values = [];
-  let total = 0;
+
+  let total = 0;          // ✅ Summe wird weiter berechnet (NICHT angezeigt)
+  let startValue = null;  // Wert am Startdatum
+  let endValue   = null;  // Wert am Enddatum
 
   try {
+
+    /* ===============================
+       JAHRE DURCHLAUFEN
+    ================================ */
     for (const year of getYearsInRange(fromDate, toDate)) {
       const rates = await fetchYearRates(year, fromCurrency, toCurrency);
 
+      /* ===============================
+         MONATE DURCHLAUFEN
+      ================================ */
       for (let m = 1; m <= 12; m++) {
         if (doesMonthOverlapRange(year, m, fromDate, toDate) && rates[m]) {
+
           const value = rates[m] * amount;
           const label = `${MONTHS[LANG][m - 1]} ${year}`;
 
+          // Tabellenzeile für Monat
           tableBody.innerHTML += `
             <tr>
               <td>${label}</td>
@@ -632,30 +655,64 @@ async function loadData() {
 
           labels.push(label);
           values.push(value);
+
+          // 🔢 Summe intern weiterführen
           total += value;
+
+          // ersten gültigen Wert merken (Start)
+          if (startValue === null) {
+            startValue = value;
+          }
+
+          // letzten gültigen Wert immer überschreiben (Ende)
+          endValue = value;
         }
       }
     }
 
+    /* ===============================
+       AUSWERTUNG
+    ================================ */
     if (!values.length) {
       showError("nodata");
     } else {
-      tableBody.innerHTML += `
-        <tr>
-          <td>${T.sum}</td>
-          <td></td>
-          <td>${formatNumber(total)} ${toCurrency}</td>
-        </tr>
-      `;
+
+      // Differenz berechnen
+      const diff = endValue - startValue;
+
+    // Ergebniszeilen (immer im DOM!)
+    tableBody.innerHTML += `
+      <tr class="diff-row">
+        <td>${T.difference}</td>
+        <td>${formatDateDE(fromDate)} → ${formatDateDE(toDate)}</td>
+        <td class="diff-cell" style="color:red; font-weight:600;" >
+          ${formatNumber(diff)} ${toCurrency}
+        </td>
+      </tr>
+
+      <tr class="sum-row">
+        <td>${T.sum}</td>
+        <td></td>
+        <td class="sum-cell">
+          ${formatNumber(total)} ${toCurrency}
+        </td>
+      </tr>
+    `;
+
+
+      // Chart rendern (Monatswerte)
       renderChart(labels, values, toCurrency);
     }
+
   } catch {
     showError("error");
   }
 
+  /* ===============================
+     LOADING AUS
+  ================================ */
   setLoading(false);
 }
-
 
 /* =========================================================
    Events
@@ -714,7 +771,10 @@ presetYear.onclick = () => {
 
 
 pdfBtn.onclick = () => {
+
+  // =========================
   // 🔒 Sicherheitschecks
+  // =========================
   if (!pdfFontReady || !pdfFontData) {
     alert("PDF-Font noch nicht geladen");
     return;
@@ -729,7 +789,16 @@ pdfBtn.onclick = () => {
   }
 
   // =========================
-  // Datum DD.MM.YYYY (lokal)
+  // Summe-Zeile TEMPORÄR einblenden
+  // (Bildschirm: versteckt / PDF: sichtbar)
+  // =========================
+  const sumRow = document.querySelector(".sum-row");
+  if (sumRow) {
+    sumRow.style.display = "table-row";
+  }
+
+  // =========================
+  // Hilfsfunktionen Datum
   // =========================
   function formatDate(date) {
     return date.toLocaleDateString(LOCALE, {
@@ -739,9 +808,6 @@ pdfBtn.onclick = () => {
     });
   }
 
-  // =========================
-  // Dateiname MM-YY_MM-YY
-  // =========================
   function formatMonthYear(date) {
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const y = String(date.getFullYear()).slice(-2);
@@ -749,7 +815,7 @@ pdfBtn.onclick = () => {
   }
 
   // =========================
-  // PDF-Dateiname
+  // Dateiname
   // =========================
   const fileName =
     `${formatMonthYear(fromDate)}_${formatMonthYear(toDate)}.pdf`;
@@ -763,14 +829,12 @@ pdfBtn.onclick = () => {
     format: "a4"
   });
 
-  // ✅ FONT HIER registrieren (UMD-KORREKT)
+  // Font registrieren
   doc.addFileToVFS("DejaVuSans.ttf", pdfFontData);
   doc.addFont("DejaVuSans.ttf", "DejaVu", "normal");
   doc.setFont("DejaVu", "normal");
 
-  // =========================
-  // Titel (NUR Datum von – bis)
-  // =========================
+  // Titel
   doc.setFontSize(14);
   doc.text(
     `${formatDate(fromDate)} – ${formatDate(toDate)}`,
@@ -778,28 +842,58 @@ pdfBtn.onclick = () => {
     18
   );
 
+  // Tabelle (inkl. Differenz + Summe)
+doc.autoTable({
+  startY: 28,
+  html: "table",
+  styles: {
+    font: "DejaVu",
+    fontSize: 9,
+    cellPadding: 3
+  },
+  headStyles: {
+    fillColor: [37, 99, 235]
+  },
+  theme: "grid",
+
+  // 🔴 PDF-STYLING FÜR DIFFERENZ
+  didParseCell: function (data) {
+
+    // Nur Body-Zeilen
+    if (data.section === "body") {
+
+      const row = data.row.raw;
+
+      // Prüfen ob Differenz-Zeile
+      if (row && row.classList && row.classList.contains("diff-row")) {
+
+        // Rot
+        data.cell.styles.textColor = [220, 38, 38];
+        data.cell.styles.fontStyle = "bold";
+
+        // Doppelte Unterstreichung simulieren
+        data.cell.styles.lineWidth = 0.5;
+        data.cell.styles.lineColor = [220, 38, 38];
+      }
+    }
+  }
+});
+
+
   // =========================
-  // Tabelle
+  // Summe-Zeile wieder verstecken
   // =========================
-  doc.autoTable({
-    startY: 28,
-    html: "table",
-    styles: {
-      font: "DejaVu",
-      fontSize: 9,
-      cellPadding: 3
-    },
-    headStyles: {
-      fillColor: [37, 99, 235]
-    },
-    theme: "grid"
-  });
+  if (sumRow) {
+    sumRow.style.display = "none";
+  }
 
   // =========================
   // Speichern
   // =========================
   doc.save(fileName);
 };
+
+
 
 
 
