@@ -2,7 +2,7 @@
    SERVICE WORKER – CACHE
 ================================ */
 
-const CACHE_NAME = "dilousta58-v1";
+const CACHE_NAME = "dilousta58-v.1.2";
 
 const CORE_ASSETS = [
   "./",
