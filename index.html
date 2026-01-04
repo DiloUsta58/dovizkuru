@@ -40,11 +40,23 @@
   <div class="controls">
    <button id="langToggle">DE / TR</button>
 
-  <button id="toggleBtn">EUR ⇄ TRY</button><input id="amount" type="number" value="1" step="10">
-  <button id="showBtn" data-i18n="show">Anzeigen</button>
-  <button id="presetToday" data-i18n="today">Heute</button>
-  <button id="presetMonth" data-i18n="month">Monat</button>
-  <button id="presetYear" data-i18n="year">12 Monate</button>
+    <!-- ===============================
+        WÄHRUNGSAUSWAHL
+    ================================= -->
+
+    <select id="fromSelect"></select>
+    <!-- ===============================
+     WÄHRUNGS-SWAP
+      ================================= -->
+    <button id="swapBtn" title="Währungen tauschen">↔</button>
+
+    <select id="toSelect"></select>
+  
+    <input id="amount" type="number" value="1" step="10">
+    <button id="showBtn" data-i18n="show">Anzeigen</button>
+    <button id="presetToday" data-i18n="today">Heute</button>
+    <button id="presetMonth" data-i18n="month">Monat</button>
+    <button id="presetYear" data-i18n="year">12 Monate</button>
 
     <input id="dateFrom" type="date">
     <input id="dateTo" type="date">
@@ -80,9 +92,8 @@
  </div>
      <footer>
         <div id="kimlik" data-i18n="footer_author">© Dilaver Bölükbaşı</div>
-        <div id="lastUpdate" data-i18n="footer_lastupdate">
-            <!-- wird von fs.js automatisch gesetzt -->
-        </div>
+        <div id="lastUpdate" data-i18n="footer_lastupdate"></div>
+        <div id="updateStatus" class="update-status"></div>
     </footer>
                 <!-- jsPDF -->
         <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>

@@ -1,4 +1,75 @@
 /* ===============================
+   WÄHRUNGEN – ZENTRAL
+================================ */
+
+// Alle erlaubten Währungen
+const CURRENCIES = ["EUR", "TRY", "USD"];
+
+// Aktuelle Auswahl
+let fromCurrency = "EUR";
+let toCurrency   = "TRY";
+
+
+/* ===============================
+   DOM – WÄHRUNGEN
+================================ */
+
+const fromSelect = document.getElementById("fromSelect");
+const toSelect   = document.getElementById("toSelect");
+
+/* ===============================
+   DROPDOWNS INITIALISIEREN
+================================ */
+
+function initCurrencySelects() {
+  fromSelect.innerHTML = "";
+  toSelect.innerHTML   = "";
+
+  CURRENCIES.forEach(cur => {
+    const optFrom = new Option(cur, cur);
+    const optTo   = new Option(cur, cur);
+
+    fromSelect.add(optFrom);
+    toSelect.add(optTo);
+  });
+
+  // Startwerte
+  fromSelect.value = fromCurrency;
+  toSelect.value   = toCurrency;
+}
+
+/* ===============================
+   DROPDOWN EVENTS
+================================ */
+
+fromSelect.addEventListener("change", () => {
+  fromCurrency = fromSelect.value;
+
+  // gleiche Währung verhindern
+  if (fromCurrency === toCurrency) {
+    toCurrency = CURRENCIES.find(c => c !== fromCurrency);
+    toSelect.value = toCurrency;
+  }
+
+  updateToggleUI();
+  loadData();
+});
+
+toSelect.addEventListener("change", () => {
+  toCurrency = toSelect.value;
+
+  // gleiche Währung verhindern
+  if (toCurrency === fromCurrency) {
+    fromCurrency = CURRENCIES.find(c => c !== toCurrency);
+    fromSelect.value = fromCurrency;
+  }
+
+  updateToggleUI();
+  loadData();
+});
+
+
+/* ===============================
    PDF – UNICODE FONT
 ================================ */
 const { jsPDF } = window.jspdf;
@@ -18,9 +89,6 @@ fetch("assets/fonts/DejaVuSans.ttf")
     pdfFontReady = true;
   })
   .catch(err => console.error("Font-Ladefehler:", err));
-
-
-
 
 
 /* =====================================
@@ -78,7 +146,13 @@ const i18n = {
 
     /* ===== Chart / PDF ===== */
     chart: c => `Monatsverlauf (${c})`,
-    pdfTitle: (a, b) => `${a} – ${b}`
+    pdfTitle: (a, b) => `${a} – ${b}`,
+   /* ===== update info ===== */
+    updateAvailable: "Neue Version verfügbar. Jetzt aktualisieren?",
+
+    appUpToDate: "App ist aktuell",
+    updateFooter: "Neue Version verfügbar – klicken zum Aktualisieren",
+
   },
 
   tr: {
@@ -114,7 +188,13 @@ const i18n = {
 
     /* ===== Grafik / PDF ===== */
     chart: c => `Aylık Değişim (${c})`,
-    pdfTitle: (a, b) => `${a} – ${b}`
+    pdfTitle: (a, b) => `${a} – ${b}`,
+    /* ===== update info ===== */
+    updateAvailable: "Yeni sürüm mevcut. Şimdi güncellensin mi?",
+
+    appUpToDate: "Uygulama güncel",
+    updateFooter: "Yeni sürüm mevcut – güncellemek için tıklayın",
+
   }
 };
 
@@ -256,7 +336,6 @@ const amountInput   = document.getElementById("amount");
 const dateFromInput = document.getElementById("dateFrom");
 const dateToInput   = document.getElementById("dateTo");
 
-const toggleBtn   = document.getElementById("toggleBtn");
 const showBtn     = document.getElementById("showBtn");
 const pdfBtn      = document.getElementById("pdfBtn");
 const darkModeBtn = document.getElementById("darkModeBtn");
@@ -269,6 +348,12 @@ const colFrom = document.getElementById("colFrom");
 const colTo   = document.getElementById("colTo");
 
 const chartCanvas = document.getElementById("chart");
+
+/* ===============================
+   SWAP BUTTON
+================================ */
+
+const swapBtn = document.getElementById("swapBtn");
 
 
 /* =========================================================
@@ -304,6 +389,7 @@ let autoReloadTimer = null;
   }
 
   updateToggleUI();
+  initCurrencySelects();
 })();
 
 /* =========================================================
@@ -358,14 +444,16 @@ function formatDateDE(date) {
   return `${d}.${m}.${y}`;
 }
 
-function updateToggleUI() {
-  const from = direction === "EUR_TRY" ? "EUR" : "TRY";
-  const to   = direction === "EUR_TRY" ? "TRY" : "EUR";
+/* ===============================
+  TOGGLE UI AKTUALISIEREN
+================================ */
 
-  toggleBtn.textContent = `${from} → ${to}`;
-  colFrom.textContent = from;
-  colTo.textContent = to;
+function updateToggleUI() {
+  colFrom.textContent = fromCurrency;
+  colTo.textContent   = toCurrency;
 }
+
+
 
 /* =========================================================
    Datumslogik
@@ -385,9 +473,9 @@ function getYearsInRange(from, to) {
   return years;
 }
 
-/* =========================================================
-   API
-========================================================= */
+/* ===============================
+   API – DYNAMISCH
+================================ */
 
 async function fetchYearRates(year, from, to) {
   const key = `${year}_${from}_${to}`;
@@ -400,7 +488,7 @@ async function fetchYearRates(year, from, to) {
   const data = await res.json();
   const result = {};
 
-  Object.keys(data.rates).sort().forEach(d => {
+  Object.keys(data.rates).forEach(d => {
     const m = new Date(d).getMonth() + 1;
     result[m] = data.rates[d][to];
   });
@@ -408,6 +496,7 @@ async function fetchYearRates(year, from, to) {
   rateCache[key] = result;
   return result;
 }
+
 
 /* =========================================================
    Diagramm
@@ -437,9 +526,9 @@ function renderChart(labels, values, currency) {
   });
 }
 
-/* =========================================================
-   Hauptlogik
-========================================================= */
+/* ===============================
+   HAUPTLOGIK
+================================ */
 
 async function loadData() {
   tableBody.innerHTML = "";
@@ -450,18 +539,18 @@ async function loadData() {
   const toDate   = new Date(dateToInput.value);
 
   if (fromDate > toDate) {
-    tableBody.innerHTML =
-          `<tr><td colspan="3" class="empty">${T.invalidRange}</td></tr>`;
-
+    showError("invalid");
     setLoading(false);
     return;
   }
 
-  const from = direction === "EUR_TRY" ? "EUR" : "TRY";
-  const to   = direction === "EUR_TRY" ? "TRY" : "EUR";
-
-  yearTitle.textContent = T.ratesTitle(from, to, formatDateDE(fromDate), formatDateDE(toDate));
-
+  // Titel
+  yearTitle.textContent = T.ratesTitle(
+    fromCurrency,
+    toCurrency,
+    formatDateDE(fromDate),
+    formatDateDE(toDate)
+  );
 
   const labels = [];
   const values = [];
@@ -469,19 +558,18 @@ async function loadData() {
 
   try {
     for (const year of getYearsInRange(fromDate, toDate)) {
-      const rates = await fetchYearRates(year, from, to);
+      const rates = await fetchYearRates(year, fromCurrency, toCurrency);
 
       for (let m = 1; m <= 12; m++) {
         if (doesMonthOverlapRange(year, m, fromDate, toDate) && rates[m]) {
           const value = rates[m] * amount;
           const label = `${MONTHS[LANG][m - 1]} ${year}`;
 
-
           tableBody.innerHTML += `
             <tr>
               <td>${label}</td>
-              <td>${formatNumber(amount)} ${from}</td>
-              <td>${formatNumber(value)} ${to}</td>
+              <td>${formatNumber(amount)} ${fromCurrency}</td>
+              <td>${formatNumber(value)} ${toCurrency}</td>
             </tr>
           `;
 
@@ -493,36 +581,49 @@ async function loadData() {
     }
 
     if (!values.length) {
-        tableBody.innerHTML =
-          `<tr><td colspan="3" class="empty">${T.nodata}</td></tr>`;
-
+      showError("nodata");
     } else {
       tableBody.innerHTML += `
         <tr>
           <td>${T.sum}</td>
           <td></td>
-          <td>${formatNumber(total)} ${to}</td>
+          <td>${formatNumber(total)} ${toCurrency}</td>
         </tr>
       `;
-      renderChart(labels, values, to);
+      renderChart(labels, values, toCurrency);
     }
   } catch {
-      tableBody.innerHTML =
-        `<tr><td colspan="3" class="empty">${T.loadError}</td></tr>`;
+    showError("error");
   }
 
   setLoading(false);
 }
 
+
 /* =========================================================
    Events
 ========================================================= */
 
-toggleBtn.onclick = () => {
-  direction = direction === "EUR_TRY" ? "TRY_EUR" : "EUR_TRY";
+/* ===============================
+   WÄHRUNGEN TAUSCHEN
+================================ */
+
+swapBtn.addEventListener("click", () => {
+  // Werte tauschen
+  [fromCurrency, toCurrency] = [toCurrency, fromCurrency];
+
+  // Dropdowns synchronisieren
+  fromSelect.value = fromCurrency;
+  toSelect.value   = toCurrency;
+
+  // UI & Daten neu laden
   updateToggleUI();
   loadData();
-};
+});
+
+/* ===============================
+   WÄHRUNGS-TOGGLE
+================================ */
 
 showBtn.onclick = loadData;
 
@@ -666,19 +767,54 @@ document.querySelectorAll("[data-i18n]").forEach(el => {
    LAST UPDATE
 ========================= */
 
+/* =========================
+   LAST UPDATE (FIXED FORMAT)
+========================= */
+
 window.addEventListener("DOMContentLoaded", () => {
   const el = document.getElementById("lastUpdate");
-  if (!el || !T || !LOCALE) return;
+  if (!el || !T) return;
 
-  const lastModified = document.lastModified;
+  const lastModified = new Date(document.lastModified);
 
-  const formatted = new Date(lastModified).toLocaleString(
-    LOCALE,
-    { dateStyle: "short", timeStyle: "short" }
-  );
+  const dd = String(lastModified.getDate()).padStart(2, "0");
+  const mm = String(lastModified.getMonth() + 1).padStart(2, "0");
+  const yyyy = lastModified.getFullYear();
+
+  const hh = String(lastModified.getHours()).padStart(2, "0");
+  const min = String(lastModified.getMinutes()).padStart(2, "0");
+
+  const formatted = `${dd}.${mm}.${yyyy} ${hh}:${min}`;
 
   el.textContent = T.updated(formatted);
 });
+
+
+
+/* ===============================
+   SERVICE WORKER – UPDATE STATUS
+================================ */
+
+const updateEl = document.getElementById("updateStatus");
+
+if (updateEl) {
+  // Standard: aktuell
+  updateEl.textContent = T.appUpToDate;
+}
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("message", event => {
+    if (event.data === "update" && updateEl) {
+      updateEl.textContent = T.updateFooter;
+      updateEl.classList.add("update-available");
+
+      updateEl.onclick = () => {
+        window.location.reload();
+      };
+    }
+  });
+}
+
 
 
 /* ===============================

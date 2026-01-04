@@ -64,6 +64,87 @@ button:hover {
 }
 
 /* =========================================================
+   DROPDOWN – WÄHRUNG
+========================================================= */
+
+/* Basis (Light + Dark über CSS-Variablen) */
+select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+
+  /* Browser-Default entfernen */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* Platz für Pfeil */
+  padding-right: 28px;
+
+  /* Eigener Pfeil */
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-color) 50%),
+    linear-gradient(135deg, var(--text-color) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 13px) 50%;
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* Hover */
+select:hover {
+  border-color: var(--accent-color);
+}
+
+/* Focus */
+select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+/* Disabled (falls später nötig) */
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   SWAP BUTTON (<->)
+========================================================= */
+
+#swapBtn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#swapBtn:hover {
+  border-color: var(--accent-color);
+}
+
+#swapBtn:active {
+  transform: scale(0.95);
+}
+
+/* =========================================================
    Loader
 ========================================================= */
 
@@ -243,6 +324,29 @@ tbody tr:last-child td {
   font-weight: 700;
   border-top: 2px solid var(--border-color);
 }
+
+/* =========================================================
+   Update
+========================================================= */
+
+.update-status  {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  cursor: default;
+}
+
+.update-status.update-available {
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.lastUpdate {
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 
 /* =========================================================
    Responsive
