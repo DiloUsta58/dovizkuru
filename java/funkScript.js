@@ -7,6 +7,7 @@ if (savedTheme === "dark") {
   document.documentElement.dataset.theme = "dark";
 }
 
+
 const STORAGE_FROM_CURRENCY = "from_currency";
 const STORAGE_TO_CURRENCY   = "to_currency";
 
@@ -136,7 +137,7 @@ const i18n = {
   de: {
     /* ===== Allgemein ===== */
     title: "Wechselkurs Monatsübersicht",
-    loading: "Laden …",
+    loading: "Lade Wechselkurse …",
     nodata: "Keine Daten gefunden",
     invalidRange: "Ungültiger Zeitraum!",
     loadError: "Fehler beim Laden!",
@@ -172,13 +173,13 @@ const i18n = {
 
     appUpToDate: "App ist aktuell",
     updateFooter: "Neue Version verfügbar – klicken zum Aktualisieren",
-
+    Baslik: "Wechselkurs Übersicht"
   },
 
   tr: {
     /* ===== Genel ===== */
     title: "Aylık Döviz Kuru Özeti",
-    loading: "Yükleniyor …",
+    loading: "Döviz Kurlar Yükleniyor …",
     nodata: "Veri bulunamadı (Geçersiz tarih aralığı)!",
     invalidRange: "Geçersiz tarih aralığı!",
     loadError: "Yükleme hatası!",
@@ -215,6 +216,7 @@ const i18n = {
 
     appUpToDate: "Uygulama güncel",
     updateFooter: "Yeni sürüm mevcut – güncellemek için tıklayın",
+    Baslik: "Döviz Kuru Özeti",
 
   }
 };
@@ -383,6 +385,51 @@ const swapBtn = document.getElementById("swapBtn");
 
 let direction = "EUR_TRY";
 const rateCache = {};
+
+/* =========================================================
+   STICHTAG – EXAKTER KURS AM DATUM
+========================================================= */
+async function fetchRateAtDate(dateISO, from, to) {
+  const key = `${dateISO}_${from}_${to}`;
+  if (rateCache[key]) return rateCache[key];
+
+  const res = await fetch(
+    `${API_BASE}/${dateISO}?from=${from}&to=${to}`
+  );
+  const data = await res.json();
+  const rate = data?.rates?.[to];
+
+  rateCache[key] = rate;
+  return rate;
+}
+
+
+/* =========================================================
+   STICHTAGS-MONATS-SEQUENZ (VARIANTE B)
+========================================================= */
+
+function addMonthSafe(date, day) {
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + 1);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, lastDay));
+  return d;
+}
+
+function buildStichtagSequence(dateFrom, dateTo) {
+  const result = [];
+  const day = dateFrom.getDate();
+  let current = new Date(dateFrom);
+
+  while (current < dateTo) {
+    result.push(new Date(current));
+    current = addMonthSafe(current, day);
+  }
+
+  result.push(new Date(dateTo));
+  return result;
+}
+
 let chartInstance = null;
 
 /* 👉 Gemeinsamer Debounce-Timer */
@@ -414,7 +461,6 @@ let autoReloadTimer = null;
 
   toCurrency =
     localStorage.getItem(STORAGE_TO_CURRENCY) || toCurrency;
-
 
   if (localStorage.getItem(STORAGE_THEME) === "dark") {
     document.body.dataset.theme = "dark";
@@ -487,6 +533,15 @@ function formatNumber(v) {
   }).format(v);
 }
 
+
+
+
+function formatDateDMY(date) {
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+  return `${d}.${m}.${y}`;
+}
 
 function formatDateDE(date) {
   const d = String(date.getDate()).padStart(2, "0");
@@ -581,35 +636,25 @@ function renderChart(labels, values, currency) {
    HAUPTLOGIK
 ================================ */
 
+
 async function loadData() {
 
-  /* ===============================
-     RESET & LOADING
-  ================================ */
   tableBody.innerHTML = "";
   setLoading(true);
 
-  /* ===============================
-     INPUT WERTE
-  ================================ */
   const amount = parseFloat(amountInput.value) || 1;
   let fromDate = new Date(dateFromInput.value);
   let toDate   = new Date(dateToInput.value);
 
-  // Zukunft verhindern (bis max. heute)
   toDate = clampToToday(toDate);
   dateToInput.valueAsDate = toDate;
 
-  // Ungültiger Zeitraum
   if (fromDate > toDate) {
     showError("invalid");
     setLoading(false);
     return;
   }
 
-  /* ===============================
-     TITEL
-  ================================ */
   yearTitle.textContent = T.ratesTitle(
     fromCurrency,
     toCurrency,
@@ -617,90 +662,61 @@ async function loadData() {
     formatDateDE(toDate)
   );
 
-  /* ===============================
-     CHART / TABLE DATA
-  ================================ */
   const labels = [];
   const values = [];
 
-  let total = 0;          // ✅ Summe wird weiter berechnet (NICHT angezeigt)
-  let startValue = null;  // Wert am Startdatum
-  let endValue   = null;  // Wert am Enddatum
+  let startValue = null;
+  let endValue   = null;
 
   try {
 
-    /* ===============================
-       JAHRE DURCHLAUFEN
-    ================================ */
-    for (const year of getYearsInRange(fromDate, toDate)) {
-      const rates = await fetchYearRates(year, fromCurrency, toCurrency);
+    const sequence = buildStichtagSequence(fromDate, toDate);
 
-      /* ===============================
-         MONATE DURCHLAUFEN
-      ================================ */
-      for (let m = 1; m <= 12; m++) {
-        if (doesMonthOverlapRange(year, m, fromDate, toDate) && rates[m]) {
-
-          const value = rates[m] * amount;
-          const label = `${MONTHS[LANG][m - 1]} ${year}`;
-
-          // Tabellenzeile für Monat
-          tableBody.innerHTML += `
-            <tr>
-              <td>${label}</td>
-              <td>${formatNumber(amount)} ${fromCurrency}</td>
-              <td>${formatNumber(value)} ${toCurrency}</td>
-            </tr>
-          `;
-
-          labels.push(label);
-          values.push(value);
-
-          // 🔢 Summe intern weiterführen
-          total += value;
-
-          // ersten gültigen Wert merken (Start)
-          if (startValue === null) {
-            startValue = value;
-          }
-
-          // letzten gültigen Wert immer überschreiben (Ende)
-          endValue = value;
-        }
-      }
+    for (const d of sequence) {
+      const iso = d.toISOString().slice(0,10);
+      const rate = await fetchRateAtDate(iso, fromCurrency, toCurrency);
+      if (!rate) {
+      console.warn("Kein Kurs für", iso);
+      continue;
     }
 
-    /* ===============================
-       AUSWERTUNG
-    ================================ */
+      const value = rate * amount;
+      const label = `${MONTHS[LANG][d.getMonth()]} ${d.getFullYear()}`;
+
+      tableBody.innerHTML += `
+        <tr>
+          <td class="date-cell"
+              data-screen-text="${label}"
+              data-print-date="${formatDateDMY(d)}">
+          </td>
+          <td>${formatNumber(amount)} ${fromCurrency}</td>
+          <td>${formatNumber(value)} ${toCurrency}</td>
+        </tr>
+      `;
+
+      labels.push(label);
+      values.push(value);
+
+      if (startValue === null) startValue = value;
+      endValue = value;
+    }
+
     if (!values.length) {
       showError("nodata");
     } else {
 
-      // Differenz berechnen
       const diff = endValue - startValue;
 
-    // Ergebniszeilen (immer im DOM!)
-    tableBody.innerHTML += `
-      <tr class="diff-row">
-        <td>${T.difference}</td>
-        <td>${formatDateDE(fromDate)} → ${formatDateDE(toDate)}</td>
-        <td class="diff-cell" style="color:red; font-weight:600;" >
-          ${formatNumber(diff)} ${toCurrency}
-        </td>
-      </tr>
+      tableBody.innerHTML += `
+        <tr class="diff-row">
+          <td>${T.difference}</td>
+          <td>${formatDateDMY(fromDate)} → ${formatDateDMY(toDate)}</td>
+          <td class="diff-cell">
+            ${formatNumber(diff)} ${toCurrency}
+          </td>
+        </tr>
+      `;
 
-      <tr class="sum-row">
-        <td>${T.sum}</td>
-        <td></td>
-        <td class="sum-cell">
-          ${formatNumber(total)} ${toCurrency}
-        </td>
-      </tr>
-    `;
-
-
-      // Chart rendern (Monatswerte)
       renderChart(labels, values, toCurrency);
     }
 
@@ -708,11 +724,9 @@ async function loadData() {
     showError("error");
   }
 
-  /* ===============================
-     LOADING AUS
-  ================================ */
   setLoading(false);
 }
+
 
 /* =========================================================
    Events
@@ -768,6 +782,44 @@ presetYear.onclick = () => {
     new Date(d.getFullYear() - 1, d.getMonth(), d.getDate());
   triggerAutoReload(0);
 };
+
+function buildPdfTableData() {
+  const rows = [];
+
+  document.querySelectorAll("table tbody tr").forEach(tr => {
+
+    // SUMME-ZEILE übernehmen
+    if (tr.classList.contains("sum-row")) {
+      rows.push([
+        "Summe",
+        tr.children[1].textContent.trim(),
+        tr.children[2].textContent.trim()
+      ]);
+      return;
+    }
+
+    // DIFFERENZ-ZEILE übernehmen
+    if (tr.classList.contains("diff-row")) {
+      rows.push([
+        "Differenz",
+        tr.children[1].textContent.trim(),
+        tr.children[2].textContent.trim()
+      ]);
+      return;
+    }
+
+    // NORMALE ZEILE
+    const dateCell = tr.querySelector(".date-cell");
+
+    rows.push([
+      dateCell.dataset.printDate,                 // ← DAS Datum fürs PDF
+      tr.children[1].textContent.trim(),
+      tr.children[2].textContent.trim()
+    ]);
+  });
+
+  return rows;
+}
 
 
 pdfBtn.onclick = () => {
@@ -845,32 +897,31 @@ pdfBtn.onclick = () => {
   // Tabelle (inkl. Differenz + Summe)
 doc.autoTable({
   startY: 28,
-  html: "table",
+  head: [["Datum", "Betrag", "Wert"]],
+  body: buildPdfTableData(),
+
   styles: {
     font: "DejaVu",
     fontSize: 9,
     cellPadding: 3
   },
+
   headStyles: {
     fillColor: [37, 99, 235]
   },
-  theme: "grid",
 
+  theme: "grid",
   // 🔴 PDF-STYLING FÜR DIFFERENZ
   didParseCell: function (data) {
-
     // Nur Body-Zeilen
     if (data.section === "body") {
 
       const row = data.row.raw;
-
       // Prüfen ob Differenz-Zeile
-      if (row && row.classList && row.classList.contains("diff-row")) {
-
+      if (row && row[0] === "Differenz") {
         // Rot
         data.cell.styles.textColor = [220, 38, 38];
         data.cell.styles.fontStyle = "bold";
-
         // Doppelte Unterstreichung simulieren
         data.cell.styles.lineWidth = 0.5;
         data.cell.styles.lineColor = [220, 38, 38];
@@ -878,6 +929,7 @@ doc.autoTable({
     }
   }
 });
+
 
 
   // =========================
@@ -1022,4 +1074,5 @@ if (langBtn) {
     showBtn.onclick();
   });
 }
+
 
