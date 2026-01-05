@@ -6,7 +6,7 @@
 =================================================
 */
 
-const CACHE_VERSION = "1.12";
+const CACHE_VERSION = "1.24";
 const CACHE_NAME = `dilousta58-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
