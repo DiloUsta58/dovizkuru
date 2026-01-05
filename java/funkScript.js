@@ -171,7 +171,7 @@ const i18n = {
    /* ===== update info ===== */
     updateAvailable: "Neue Version verfügbar. Jetzt aktualisieren?",
 
-    appUpToDate: "App ist aktuell",
+    appUpToDate: "1.24",
     updateFooter: "Neue Version verfügbar – klicken zum Aktualisieren",
     Baslik: "Wechselkurs Übersicht"
   },
@@ -214,7 +214,7 @@ const i18n = {
     /* ===== update info ===== */
     updateAvailable: "Yeni sürüm mevcut. Şimdi güncellensin mi?",
 
-    appUpToDate: "Uygulama güncel",
+    appUpToDate: "v1.24",
     updateFooter: "Yeni sürüm mevcut – güncellemek için tıklayın",
     Baslik: "Döviz Kuru Özeti",
 
