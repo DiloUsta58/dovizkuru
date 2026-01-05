@@ -171,7 +171,7 @@ const i18n = {
    /* ===== update info ===== */
     updateAvailable: "Neue Version verfügbar. Jetzt aktualisieren?",
 
-    appUpToDate: "1.24",
+    appUpToDate: "v1.26",
     updateFooter: "Neue Version verfügbar – klicken zum Aktualisieren",
     Baslik: "Wechselkurs Übersicht"
   },
@@ -214,7 +214,7 @@ const i18n = {
     /* ===== update info ===== */
     updateAvailable: "Yeni sürüm mevcut. Şimdi güncellensin mi?",
 
-    appUpToDate: "v1.24",
+    appUpToDate: "v1.26",
     updateFooter: "Yeni sürüm mevcut – güncellemek için tıklayın",
     Baslik: "Döviz Kuru Özeti",
 
@@ -1002,27 +1002,41 @@ window.addEventListener("DOMContentLoaded", () => {
 
 /* ===============================
    SERVICE WORKER – UPDATE STATUS
+   (FINAL / VERSION-SAFE)
 ================================ */
 
 const updateEl = document.getElementById("updateStatus");
 
+// Standard-Anzeige
 if (updateEl) {
-  // Standard: aktuell
   updateEl.textContent = T.appUpToDate;
 }
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.addEventListener("message", event => {
-    if (event.data === "update" && updateEl) {
-      updateEl.textContent = T.updateFooter;
-      updateEl.classList.add("update-available");
 
-      updateEl.onclick = () => {
-        window.location.reload();
-      };
+  navigator.serviceWorker.addEventListener("message", event => {
+
+    if (event.data?.type === "SW_UPDATED" && updateEl) {
+
+      const newVersion = event.data.version;
+      const lastSeen   = localStorage.getItem("swVersion");
+
+      // Nur bei echter neuer Version reagieren
+      if (lastSeen !== newVersion) {
+
+        localStorage.setItem("swVersion", newVersion);
+
+        updateEl.textContent = T.updateFooter;
+        updateEl.classList.add("update-available");
+
+        updateEl.onclick = () => {
+          window.location.reload();
+        };
+      }
     }
   });
 }
+
 
 
 /* ===============================
