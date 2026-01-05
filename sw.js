@@ -8,7 +8,7 @@
    ⚠️ BEI JEDEM RELEASE ÄNDERN
 ================================ */
 const CACHE_VERSION = "1.26";
-const SW_BUILD = "2026-01-06T00:10";
+const SW_BUILD = "2026-01-06T00:30";
 const CACHE_NAME = `dilousta58-${CACHE_VERSION}`;
 
 /* ===============================
